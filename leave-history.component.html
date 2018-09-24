@@ -1,0 +1,78 @@
+<p-messages [value]="msgs"></p-messages>
+<div class="ui-g">
+    <h2 class="page-header no-mobile ui-g-12 ui-g-nopad">Your leave history</h2>
+    <div class="data-table-search">
+        <input #gb pInputText size="50" type="text" placeholder="Search">
+    </div>
+    <p-dataTable [value]="leaves" [rows]="10" [paginator]="true" [responsive]="true" [globalFilter]="gb"
+                 selectionMode="single" (onRowSelect)="onRowSelect($event)" [(selection)]="selectedLeave">
+        <header>Leave History</header>
+        <p-column field="leaveTypeName" [sortable]="true" header="Leave Type" [filter]="true"></p-column>
+        <p-column field="formatStartDateTime" [sortable]="true" header="Start Date" [filter]="true"></p-column>
+        <p-column field="formatEndDateTime" [sortable]="true" header="End Date" [filter]="true"></p-column>
+        <p-column field="numberOfDays" [sortable]="true" header="Number of Days" [filter]="true">
+            <template let-col let-row="rowData" pTemplate="body">
+                {{row[col.field] | number: '1.1-1'}}
+            </template>
+        </p-column>
+        <p-column field="reason" [sortable]="true" header="Reason" [filter]="true"
+                  filterMatchMode="contains"></p-column>
+        <p-column field="status" [sortable]="true" header="Status" [filter]="true"></p-column>
+    </p-dataTable>
+
+    <p-dialog *ngIf="selectedLeave" [(visible)]="showDialog" header="{{leaveTypes[selectedLeave.leaveTypeId].description}}" modal="modal"
+              responsive="true" resizable="false">
+        <div class="ui-grid ui-grid-responsive ui-fluid" *ngIf="selectedLeave" >
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-4">ID: </div>
+                <div class="ui-grid-col-8">{{selectedLeave.id}}</div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-12" style="border-bottom: 1px solid dimgrey"></div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-4">Leave Type: </div>
+                <div class="ui-grid-col-8">{{selectedLeave.leaveTypeName}}</div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-4">Application Date: </div>
+                <div class="ui-grid-col-8">{{selectedLeave.applicationDate  | date: 'dd/MM/y'}}</div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-4">Start Time: </div>
+                <div class="ui-grid-col-8">{{selectedLeave.startDateTime | date: 'dd/MM/y a'}}</div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-4">End Time: </div>
+                <div class="ui-grid-col-8">{{selectedLeave.endDateTime  | date: 'dd/MM/y a'}}</div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-4">Number of Days: </div>
+                <div class="ui-grid-col-8">{{selectedLeave.numberOfDays | number:'1.1-1'}}</div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-4">Reason: </div>
+                <div class="ui-grid-col-8">{{selectedLeave.reason}}</div>
+            </div>
+            <div class="ui-grid-row" *ngIf="selectedLeave.leaveTypeName === 'Sick'">
+                <div class="ui-grid-col-4">Sick Leave Attachment: </div>
+                <div class="ui-grid-col-8"><a class="download-button" href="api/download?id={{selectedLeave.id}}" target="_blank">Download</a></div>
+            </div>
+            <div class="ui-grid-row" *ngIf="selectedLeave.rejectReason">
+                <div class="ui-grid-col-4">Rejection Reason: </div>
+                <div class="ui-grid-col-8">{{selectedLeave.rejectReason}}</div>
+            </div>
+            <div class="ui-grid-row" *ngIf="daysRemaining > 0">
+                <div class="ui-grid-col-4">Days remaining: </div>
+                <div class="ui-grid-col-8">{{daysRemaining}}</div>
+            </div>
+            <footer>
+                <div *ngIf="cancellable" class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
+                    <button pButton type="button" (click)="cancelLeave()"
+                            label="Cancel Leave"></button>
+                </div>
+            </footer>
+        </div>
+    </p-dialog>
+    <p-confirmDialog header="Cancel Leave" icon="fa fa-question-circle" width="340"></p-confirmDialog>
+</div>
