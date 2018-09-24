@@ -1,0 +1,77 @@
+<div class="ui-g">
+    <h2 class="page-header no-mobile ui-g-12 ui-g-nopad">Your leave schedule</h2>
+    <p-schedule [events]="leaves" [header]="header" (onDayClick)="handleDayClick($event)"
+                (onEventClick)="handleEventClick($event)"></p-schedule>
+
+    <p-dialog *ngIf="selectedDate" header="{{selectedDate | date: 'EEEE, d MMM y'}}" [(visible)]="displayDayDialog"
+              modal="modal" responsive="true">
+        <div class="field" style="margin-bottom: 8px;">
+            <select [class.empty]="!leaveType && !leaveSelectFocus" id="leave-type" (focus)="leaveSelectFocus=true"
+                    (blur)="leaveSelectFocus=false" [(ngModel)]="leaveType">
+                <option *ngFor="let option of filteredLeaveTypeOptions" [value]="option.value">{{option.label}}</option>
+            </select>
+            <label for="leave-type">Leave type</label>
+        </div>
+
+        <footer>
+            <div *ngIf="yearlyEntitlements[leaveType]" class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
+                <button *ngIf="yearlyEntitlements[leaveType].currentLeaveBalance > 0 || yearlyEntitlements[leaveType].entitlement === 0" pButton type="button" (click)="applyLeave()"
+                        label="Apply Leave"></button>
+                <p *ngIf="yearlyEntitlements[leaveType].currentLeaveBalance <= 0 && yearlyEntitlements[leaveType].entitlement !== 0" class="text-danger">You are not allowed to apply for
+                    {{yearlyEntitlements[leaveType].leaveType.description}}</p>
+            </div>
+        </footer>
+    </p-dialog>
+
+    <p-dialog *ngIf="selectedEvent" [(visible)]="displayEventDialog" header="{{leaveTypes[selectedEvent.leave.leaveTypeId]}}" modal="modal"
+              responsive="true" resizable="false">
+        <div class="ui-grid ui-grid-responsive ui-fluid" *ngIf="selectedEvent.leave" >
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-4">ID: </div>
+                <div class="ui-grid-col-8">{{selectedEvent.leave.id}}</div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-12" style="border-bottom: 1px solid dimgrey"></div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-4">Leave Type: </div>
+                <div class="ui-grid-col-8">{{selectedEvent.leave.leaveTypeName}}</div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-4">Application Date: </div>
+                <div class="ui-grid-col-8">{{selectedEvent.leave.applicationDate  | date: 'dd/MM/y'}}</div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-4">Start Time: </div>
+                <div class="ui-grid-col-8">{{selectedEvent.leave.startDateTime | date: 'dd/MM/y a'}}</div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-4">End Time: </div>
+                <div class="ui-grid-col-8">{{selectedEvent.leave.endDateTime  | date: 'dd/MM/y a'}}</div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-4">Number of Days: </div>
+                <div class="ui-grid-col-8">{{selectedEvent.leave.numberOfDays | number:'1.1-1'}}</div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-4">Reason: </div>
+                <div class="ui-grid-col-8">{{selectedEvent.leave.reason}}</div>
+            </div>
+            <div class="ui-grid-row" *ngIf="selectedEvent.leave.leaveTypeName === 'Sick'">
+                <div class="ui-grid-col-4">Sick Leave Attachment: </div>
+                <div class="ui-grid-col-8"><a class="download-button" href="api/download?id={{selectedEvent.leave.id}}" target="_blank">Download</a></div>
+            </div>
+            <div class="ui-grid-row" *ngIf="daysRemaining > 0">
+                <div class="ui-grid-col-4">Days remaining: </div>
+                <div class="ui-grid-col-8">{{daysRemaining}}</div>
+            </div>
+            <footer>
+                <div *ngIf="cancellable" class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
+                    <button pButton type="button" (click)="cancelLeave()"
+                            label="Cancel Leave"></button>
+                </div>
+            </footer>
+        </div>
+    </p-dialog>
+    <p-confirmDialog header="Cancel Leave" icon="fa fa-question-circle" width="340"></p-confirmDialog>
+</div>
